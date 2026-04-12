@@ -54,7 +54,7 @@ class PhotosFragment : Fragment() {
     }
 
     private fun getVisiblePhotos(): List<String> {
-        return getLocalPhotos().filterNot { DeletedPhotosStore.contains(it) }
+        return getLocalPhotos().filterNot { DeletedPhotosStore.contains(it) || PrivatePhotosStore.contains(it) }
     }
 
     private fun getLocalPhotos(): List<String> {
@@ -103,6 +103,8 @@ class PhotosFragment : Fragment() {
                 Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
             },
             onPrivateClick = {
+                PrivatePhotosStore.add(photoUri)
+                photoAdapter.removePhoto(photoUri)
                 Toast.makeText(requireContext(), getString(R.string.set_private_message), Toast.LENGTH_SHORT).show()
             },
             onDeleteClick = {

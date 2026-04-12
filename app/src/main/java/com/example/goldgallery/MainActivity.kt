@@ -13,6 +13,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        AppContextProvider.init(applicationContext)
         setContentView(R.layout.activity_main)
 
         // 1. Fix System Bar Padding
