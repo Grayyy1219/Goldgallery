@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/nav_photos" android:title="Photos" android:icon="@drawable/ic_photos" />
+    <item android:id="@+id/nav_albums" android:title="Albums" android:icon="@drawable/ic_albums" />
+    <item android:id="@+id/nav_private" android:title="Private" android:icon="@drawable/ic_lock" />
+    <item android:id="@+id/nav_deleted" android:title="Deleted" android:icon="@drawable/ic_delete" />
+    <item android:id="@+id/nav_settings" android:title="Settings" android:icon="@drawable/ic_settings" />
+</menu>
