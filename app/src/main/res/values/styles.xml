@@ -1,0 +1,13 @@
+<resources>
+    <style name="OverlayActionRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:minHeight">54dp</item>
+        <item name="android:paddingHorizontal">18dp</item>
+        <item name="android:textColor">#FFFFFFFF</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:drawablePadding">14dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+    </style>
+</resources>

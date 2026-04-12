@@ -7,7 +7,11 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
-class PhotoAdapter(private val photos: List<String>) : RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder>() {
+class PhotoAdapter(
+    private val photos: List<String>,
+    private val onPhotoClick: (String) -> Unit,
+    private val onPhotoLongClick: (String, View) -> Unit
+) : RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder>() {
 
     class PhotoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imageView: ImageView = view.findViewById(R.id.ivPhoto)
@@ -26,11 +30,11 @@ class PhotoAdapter(private val photos: List<String>) : RecyclerView.Adapter<Phot
             .load(photoPath)
             .into(holder.imageView)
 
-        // HANDLE THE CLICK HERE
-        holder.itemView.setOnClickListener {
-            val intent = android.content.Intent(holder.itemView.context, FullImageActivity::class.java)
-            intent.putExtra("IMAGE_PATH", photoPath)
-            holder.itemView.context.startActivity(intent)
+        holder.itemView.setOnClickListener { onPhotoClick(photoPath) }
+
+        holder.itemView.setOnLongClickListener {
+            onPhotoLongClick(photoPath, holder.itemView)
+            true
         }
     }
 

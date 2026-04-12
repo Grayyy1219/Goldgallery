@@ -2,14 +2,19 @@ package com.example.goldgallery
 
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
 class PhotosFragment : Fragment() {
+
+    private val favoritePhotos = mutableSetOf<String>()
+    private lateinit var photoAdapter: PhotoAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -29,8 +34,20 @@ class PhotosFragment : Fragment() {
         // Fetch real paths from the phone
         val realPhotoPaths = getLocalPhotos()
 
-        // Send the real paths to your PhotoAdapter
-        recyclerView.adapter = PhotoAdapter(realPhotoPaths)
+        photoAdapter = PhotoAdapter(
+            photos = realPhotoPaths,
+            onPhotoClick = { photoPath ->
+                val intent = android.content.Intent(requireContext(), FullImageActivity::class.java)
+                intent.putExtra("IMAGE_PATH", photoPath)
+                startActivity(intent)
+            },
+            onPhotoLongClick = { photoPath, anchorView ->
+                anchorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                showPhotoActions(photoPath)
+            }
+        )
+
+        recyclerView.adapter = photoAdapter
     }
 
     // This function talks to the phone's database to find image files
@@ -52,5 +69,34 @@ class PhotosFragment : Fragment() {
             }
         }
         return photoPaths
+    }
+
+    private fun showPhotoActions(photoPath: String) {
+        PhotoActionsOverlay.show(
+            host = requireActivity(),
+            photoPath = photoPath,
+            isFavorite = favoritePhotos.contains(photoPath),
+            onFavoriteClick = {
+                val isFavorite = if (favoritePhotos.contains(photoPath)) {
+                    favoritePhotos.remove(photoPath)
+                    false
+                } else {
+                    favoritePhotos.add(photoPath)
+                    true
+                }
+                val message = if (isFavorite) {
+                    getString(R.string.marked_favorite)
+                } else {
+                    getString(R.string.removed_favorite)
+                }
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+            },
+            onPrivateClick = {
+                Toast.makeText(requireContext(), getString(R.string.set_private_message), Toast.LENGTH_SHORT).show()
+            },
+            onDeleteClick = {
+                Toast.makeText(requireContext(), getString(R.string.delete_message), Toast.LENGTH_SHORT).show()
+            }
+        )
     }
 }
