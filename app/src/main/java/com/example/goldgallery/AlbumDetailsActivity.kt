@@ -1,13 +1,13 @@
 package com.example.goldgallery
 
 import android.os.Bundle
+import android.content.ContentUris
 import android.provider.MediaStore
 import android.view.HapticFeedbackConstants
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import java.io.File
 
 class AlbumDetailsActivity : AppCompatActivity() {
     private val favoritePhotos = mutableSetOf<String>()
@@ -26,52 +26,58 @@ class AlbumDetailsActivity : AppCompatActivity() {
         val filteredPhotos = getPhotosByAlbum(albumName)
         recyclerView.adapter = PhotoAdapter(
             photos = filteredPhotos,
-            onPhotoClick = { photoPath ->
+            onPhotoClick = { photoUri ->
                 val intent = android.content.Intent(this, FullImageActivity::class.java)
-                intent.putExtra("IMAGE_PATH", photoPath)
+                intent.putExtra("IMAGE_PATH", photoUri)
                 startActivity(intent)
             },
-            onPhotoLongClick = { photoPath, anchorView ->
+            onPhotoLongClick = { photoUri, anchorView ->
                 anchorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                showPhotoActions(photoPath)
+                showPhotoActions(photoUri)
             }
         )
     }
 
     private fun getPhotosByAlbum(targetBucket: String): List<String> {
-        val photoPaths = mutableListOf<String>()
-        val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        val projection = arrayOf(MediaStore.MediaColumns.DATA)
+        val photoUris = mutableListOf<String>()
+        val collectionUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        val projection = arrayOf(
+            MediaStore.Images.Media._ID,
+            MediaStore.Images.Media.BUCKET_DISPLAY_NAME
+        )
         val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
 
-        val cursor = contentResolver.query(uri, projection, null, null, sortOrder)
+       val cursor = contentResolver.query(collectionUri, projection, null, null, sortOrder)
+
 
         cursor?.use {
-            val columnIndex = it.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
+           val idColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+            val bucketColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
             while (it.moveToNext()) {
-                val path = it.getString(columnIndex)
-                val folderName = File(path).parentFile?.name
+              val imageId = it.getLong(idColumn)
+                val folderName = it.getString(bucketColumn)
 
                 // Only add the photo if it's in the clicked folder
                 if (folderName == targetBucket) {
-                    photoPaths.add(path)
+                    val imageUri = ContentUris.withAppendedId(collectionUri, imageId)
+                    photoUris.add(imageUri.toString())
                 }
             }
         }
-        return photoPaths
+        return photoUris
     }
 
-    private fun showPhotoActions(photoPath: String) {
+    private fun showPhotoActions(photoUri: String) {
         PhotoActionsOverlay.show(
             host = this,
-            photoPath = photoPath,
-            isFavorite = favoritePhotos.contains(photoPath),
+          photoPath = photoUri,
+            isFavorite = favoritePhotos.contains(photoUri),
             onFavoriteClick = {
-                val isFavorite = if (favoritePhotos.contains(photoPath)) {
-                    favoritePhotos.remove(photoPath)
+                   val isFavorite = if (favoritePhotos.contains(photoUri)) {
+                    favoritePhotos.remove(photoUri)
                     false
                 } else {
-                    favoritePhotos.add(photoPath)
+                    favoritePhotos.add(photoUri)
                     true
                 }
                 val message = if (isFavorite) {

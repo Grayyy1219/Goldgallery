@@ -1,9 +1,12 @@
 package com.example.goldgallery
 
 import android.app.Dialog
+import android.content.ContentResolver
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Build
+import android.provider.OpenableColumns
 import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.TextView
@@ -37,8 +40,8 @@ object PhotoActionsOverlay {
             }
         }
 
-        val photoFile = File(photoPath)
-        val sizeKb = if (photoFile.exists()) photoFile.length() / 1024 else 0L
+        val photoUri = photoPath.toUri()
+        val photoMeta = resolvePhotoMeta(host.contentResolver, photoUri, photoPath)
 
         val preview = dialog.findViewById<ImageView>(R.id.ivOverlayPreview)
         val tvName = dialog.findViewById<TextView>(R.id.tvOverlayPhotoName)
@@ -49,11 +52,11 @@ object PhotoActionsOverlay {
         val backdrop = dialog.findViewById<android.view.View>(R.id.overlayBackdrop)
 
         Glide.with(host)
-            .load(photoPath.toUri())
+            .load(photoUri)
             .into(preview)
 
-        tvName.text = photoFile.name
-        tvDetails.text = host.getString(R.string.photo_details_template, sizeKb, photoPath)
+        tvName.text = photoMeta.name
+        tvDetails.text = host.getString(R.string.photo_details_template, photoMeta.sizeKb, photoPath)
         rowFavorite.text = if (isFavorite) {
             host.getString(R.string.unfavorite)
         } else {
@@ -77,4 +80,37 @@ object PhotoActionsOverlay {
 
         dialog.show()
     }
+
+    private fun resolvePhotoMeta(
+        contentResolver: ContentResolver,
+        photoUri: Uri,
+        fallbackPath: String
+    ): PhotoMeta {
+        if (photoUri.scheme == "content") {
+            contentResolver.query(photoUri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)
+                ?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        val nameColumn = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                        val sizeColumn = cursor.getColumnIndex(OpenableColumns.SIZE)
+                        val displayName = if (nameColumn != -1) cursor.getString(nameColumn) else photoUri.lastPathSegment
+                        val sizeBytes = if (sizeColumn != -1) cursor.getLong(sizeColumn) else 0L
+                        return PhotoMeta(
+                            name = displayName ?: fallbackPath.substringAfterLast('/'),
+                            sizeKb = sizeBytes / 1024
+                        )
+                    }
+                }
+        }
+
+        val photoFile = File(fallbackPath)
+        return PhotoMeta(
+            name = photoFile.name.ifBlank { fallbackPath.substringAfterLast('/') },
+            sizeKb = if (photoFile.exists()) photoFile.length() / 1024 else 0L
+        )
+    }
+
+    private data class PhotoMeta(
+        val name: String,
+        val sizeKb: Long
+    )
 }

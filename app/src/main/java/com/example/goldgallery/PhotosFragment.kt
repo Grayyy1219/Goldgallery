@@ -1,6 +1,7 @@
 package com.example.goldgallery
 
 import android.os.Bundle
+import android.content.ContentUris
 import android.provider.MediaStore
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
@@ -31,19 +32,19 @@ class PhotosFragment : Fragment() {
         // Grid with 3 columns
         recyclerView.layoutManager = GridLayoutManager(context, 3)
 
-        // Fetch real paths from the phone
-        val realPhotoPaths = getLocalPhotos()
+        // Fetch image content URIs from MediaStore
+        val photoUris = getLocalPhotos()
 
         photoAdapter = PhotoAdapter(
-            photos = realPhotoPaths,
-            onPhotoClick = { photoPath ->
+            photos = photoUris,
+            onPhotoClick = { photoUri ->
                 val intent = android.content.Intent(requireContext(), FullImageActivity::class.java)
-                intent.putExtra("IMAGE_PATH", photoPath)
+                intent.putExtra("IMAGE_PATH", photoUri)
                 startActivity(intent)
             },
-            onPhotoLongClick = { photoPath, anchorView ->
+            onPhotoLongClick = { photoUri, anchorView ->
                 anchorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                showPhotoActions(photoPath)
+                showPhotoActions(photoUri)
             }
         )
 
@@ -52,36 +53,43 @@ class PhotosFragment : Fragment() {
 
     // This function talks to the phone's database to find image files
     private fun getLocalPhotos(): List<String> {
-        val photoPaths = mutableListOf<String>()
-        val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        val projection = arrayOf(MediaStore.MediaColumns.DATA)
+        val photoUris = mutableListOf<String>()
+        val collectionUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        val projection = arrayOf(MediaStore.Images.Media._ID)
 
         // Sort to show newest photos first
         val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
 
-        val cursor = requireContext().contentResolver.query(uri, projection, null, null, sortOrder)
+        val cursor = requireContext().contentResolver.query(
+            collectionUri,
+            projection,
+            null,
+            null,
+            sortOrder
+        )
 
         cursor?.use {
-            val columnIndex = it.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
+            val idColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
             while (it.moveToNext()) {
-                val path = it.getString(columnIndex)
-                photoPaths.add(path)
+                val imageId = it.getLong(idColumn)
+                val imageUri = ContentUris.withAppendedId(collectionUri, imageId)
+                photoUris.add(imageUri.toString())
             }
         }
-        return photoPaths
+        return photoUris
     }
 
-    private fun showPhotoActions(photoPath: String) {
+    private fun showPhotoActions(photoUri: String) {
         PhotoActionsOverlay.show(
             host = requireActivity(),
-            photoPath = photoPath,
-            isFavorite = favoritePhotos.contains(photoPath),
+            photoPath = photoUri,
+            isFavorite = favoritePhotos.contains(photoUri),
             onFavoriteClick = {
-                val isFavorite = if (favoritePhotos.contains(photoPath)) {
-                    favoritePhotos.remove(photoPath)
+                val isFavorite = if (favoritePhotos.contains(photoUri)) {
+                    favoritePhotos.remove(photoUri)
                     false
                 } else {
-                    favoritePhotos.add(photoPath)
+                    favoritePhotos.add(photoUri)
                     true
                 }
                 val message = if (isFavorite) {
