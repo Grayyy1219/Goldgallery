@@ -9,5 +9,7 @@ object DeletedPhotosStore {
 
     fun contains(uri: String): Boolean = deletedPhotoUris.contains(uri)
 
+    fun remove(uri: String): Boolean = deletedPhotoUris.remove(uri)
+
     fun getAll(): List<String> = deletedPhotoUris.toList()
 }

@@ -12,4 +12,10 @@
     <string name="set_private_message">Marked as private</string>
     <string name="delete_message">Delete action selected</string>
     <string name="deleted_message">Photo moved to Deleted</string>
+    <string name="deleted_photo_actions_title">Deleted photo options</string>
+    <string name="restore_photo">Restore</string>
+    <string name="permanently_delete_photo">Delete permanently</string>
+    <string name="photo_restored_message">Photo restored</string>
+    <string name="photo_permanently_deleted_message">Photo permanently deleted</string>
+    <string name="photo_permanent_delete_failed_message">Could not delete photo permanently</string>
 </resources>
