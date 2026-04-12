@@ -1,7 +1,7 @@
 package com.example.goldgallery
 
-import android.os.Bundle
 import android.content.ContentUris
+import android.os.Bundle
 import android.provider.MediaStore
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
@@ -28,15 +28,10 @@ class PhotosFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val recyclerView = view.findViewById<RecyclerView>(R.id.rvPhotos)
-
-        // Grid with 3 columns
         recyclerView.layoutManager = GridLayoutManager(context, 3)
 
-        // Fetch image content URIs from MediaStore
-        val photoUris = getLocalPhotos()
-
         photoAdapter = PhotoAdapter(
-            photos = photoUris,
+            photos = getVisiblePhotos(),
             onPhotoClick = { photoUri ->
                 val intent = android.content.Intent(requireContext(), FullImageActivity::class.java)
                 intent.putExtra("IMAGE_PATH", photoUri)
@@ -51,13 +46,21 @@ class PhotosFragment : Fragment() {
         recyclerView.adapter = photoAdapter
     }
 
-    // This function talks to the phone's database to find image files
+    override fun onResume() {
+        super.onResume()
+        if (::photoAdapter.isInitialized) {
+            photoAdapter.updatePhotos(getVisiblePhotos())
+        }
+    }
+
+    private fun getVisiblePhotos(): List<String> {
+        return getLocalPhotos().filterNot { DeletedPhotosStore.contains(it) }
+    }
+
     private fun getLocalPhotos(): List<String> {
         val photoUris = mutableListOf<String>()
         val collectionUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         val projection = arrayOf(MediaStore.Images.Media._ID)
-
-        // Sort to show newest photos first
         val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
 
         val cursor = requireContext().contentResolver.query(
@@ -103,7 +106,9 @@ class PhotosFragment : Fragment() {
                 Toast.makeText(requireContext(), getString(R.string.set_private_message), Toast.LENGTH_SHORT).show()
             },
             onDeleteClick = {
-                Toast.makeText(requireContext(), getString(R.string.delete_message), Toast.LENGTH_SHORT).show()
+                DeletedPhotosStore.add(photoUri)
+                photoAdapter.removePhoto(photoUri)
+                Toast.makeText(requireContext(), getString(R.string.deleted_message), Toast.LENGTH_SHORT).show()
             }
         )
     }

@@ -8,10 +8,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
 class PhotoAdapter(
-    private val photos: List<String>,
+    photos: List<String>,
     private val onPhotoClick: (String) -> Unit,
     private val onPhotoLongClick: (String, View) -> Unit
 ) : RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder>() {
+
+    private val photos = photos.toMutableList()
 
     class PhotoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imageView: ImageView = view.findViewById(R.id.ivPhoto)
@@ -25,7 +27,6 @@ class PhotoAdapter(
     override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
         val photoPath = photos[position]
 
-        // Load the thumbnail
         Glide.with(holder.itemView.context)
             .load(photoPath)
             .into(holder.imageView)
@@ -39,4 +40,18 @@ class PhotoAdapter(
     }
 
     override fun getItemCount() = photos.size
+
+    fun updatePhotos(newPhotos: List<String>) {
+        photos.clear()
+        photos.addAll(newPhotos)
+        notifyDataSetChanged()
+    }
+
+    fun removePhoto(photoUri: String): Boolean {
+        val index = photos.indexOf(photoUri)
+        if (index == -1) return false
+        photos.removeAt(index)
+        notifyItemRemoved(index)
+        return true
+    }
 }

@@ -11,4 +11,5 @@
     <string name="removed_favorite">Removed from favorites</string>
     <string name="set_private_message">Marked as private</string>
     <string name="delete_message">Delete action selected</string>
+    <string name="deleted_message">Photo moved to Deleted</string>
 </resources>
