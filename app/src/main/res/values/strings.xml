@@ -47,4 +47,8 @@
     <string name="private_photo_actions_title">Private photo options</string>
     <string name="remove_from_private">Remove from private</string>
     <string name="removed_from_private_message">Removed from Private</string>
+    <string name="cancel">Cancel</string>
+    <string name="selected_count">%1$d selected</string>
+    <string name="multi_select">Multi-select</string>
+    <string name="done">Done</string>
 </resources>

@@ -13,7 +13,8 @@ import jp.wasabeef.glide.transformations.BlurTransformation
 class MonthlyPhotoAdapter(
     photos: List<PhotoListItem>,
     private val onPhotoClick: (String, Int) -> Unit,
-    private val onPhotoLongClick: (String, View) -> Unit
+    private val onPhotoLongClick: (String, View) -> Unit,
+    private val onPhotoSelectionChange: () -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     companion object {
@@ -23,9 +24,13 @@ class MonthlyPhotoAdapter(
 
     private val items = photos.toMutableList()
     private var shouldBlurPhotos = false
+    private val selectedPhotos = mutableSetOf<String>()
+    private var isSelectionMode = false
 
     class PhotoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imageView: ImageView = view.findViewById(R.id.ivPhoto)
+        val selectionOverlay: View = view.findViewById(R.id.viewSelectionOverlay)
+        val selectionCheck: View = view.findViewById(R.id.tvSelectionCheck)
     }
 
     class HeaderViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -73,13 +78,21 @@ class MonthlyPhotoAdapter(
             request.apply(RequestOptions.bitmapTransform(BlurTransformation(20, 3)))
         }
         request.into(holder.imageView)
+        val isSelected = selectedPhotos.contains(item.uri)
+        holder.selectionOverlay.visibility = if (isSelected) View.VISIBLE else View.GONE
+        holder.selectionCheck.visibility = if (isSelectionMode) View.VISIBLE else View.GONE
 
         if (shouldBlurPhotos) {
             holder.itemView.setOnClickListener(null)
             holder.itemView.setOnLongClickListener(null)
         } else {
             holder.itemView.setOnClickListener {
-                onPhotoClick(item.uri, getPhotoIndex(adapterPosition))
+                if (isSelectionMode) {
+                    toggleSelection(item.uri)
+                    onPhotoSelectionChange()
+                } else {
+                    onPhotoClick(item.uri, getPhotoIndex(adapterPosition))
+                }
             }
             holder.itemView.setOnLongClickListener {
                 onPhotoLongClick(item.uri, holder.itemView)
@@ -100,6 +113,7 @@ class MonthlyPhotoAdapter(
         val index = items.indexOfFirst { it is PhotoListItem.Photo && it.uri == photoUri }
         if (index == -1) return false
 
+        selectedPhotos.remove(photoUri)
         items.removeAt(index)
 
         if (index > 0 && index < items.size) {
@@ -122,6 +136,32 @@ class MonthlyPhotoAdapter(
     fun setBlurred(blurred: Boolean) {
         if (shouldBlurPhotos == blurred) return
         shouldBlurPhotos = blurred
+        notifyDataSetChanged()
+    }
+
+    fun setSelectionMode(enabled: Boolean) {
+        if (isSelectionMode == enabled) return
+        isSelectionMode = enabled
+        if (!enabled) {
+            selectedPhotos.clear()
+        }
+        notifyDataSetChanged()
+    }
+
+    fun isSelectionModeEnabled(): Boolean = isSelectionMode
+
+    fun getSelectedPhotos(): Set<String> = selectedPhotos.toSet()
+
+    private fun toggleSelection(photoUri: String) {
+        if (selectedPhotos.contains(photoUri)) {
+            selectedPhotos.remove(photoUri)
+        } else {
+            selectedPhotos.add(photoUri)
+        }
+        if (selectedPhotos.isEmpty()) {
+            isSelectionMode = false
+        }
+        onPhotoSelectionChange()
         notifyDataSetChanged()
     }
 

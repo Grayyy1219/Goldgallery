@@ -7,6 +7,9 @@ import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
@@ -20,6 +23,9 @@ class PhotosFragment : Fragment() {
 
     private val favoritePhotos = mutableSetOf<String>()
     private lateinit var photoAdapter: MonthlyPhotoAdapter
+    private lateinit var multiSelectActions: LinearLayout
+    private lateinit var selectionCountText: TextView
+    private lateinit var toggleMultiSelectButton: Button
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -32,6 +38,12 @@ class PhotosFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val recyclerView = view.findViewById<RecyclerView>(R.id.rvPhotos)
+        multiSelectActions = view.findViewById(R.id.layoutMultiSelectActions)
+        selectionCountText = view.findViewById(R.id.tvSelectionCount)
+        toggleMultiSelectButton = view.findViewById(R.id.btnToggleMultiSelect)
+        val privateButton = view.findViewById<Button>(R.id.btnSelectionPrivate)
+        val deleteButton = view.findViewById<Button>(R.id.btnSelectionDelete)
+        val cancelButton = view.findViewById<Button>(R.id.btnSelectionCancel)
         val layoutManager = GridLayoutManager(context, 3)
         recyclerView.layoutManager = layoutManager
 
@@ -43,7 +55,8 @@ class PhotosFragment : Fragment() {
             onPhotoLongClick = { photoUri, anchorView ->
                 anchorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                 showPhotoActions(photoUri)
-            }
+            },
+            onPhotoSelectionChange = { updateMultiSelectUi() }
         )
 
         layoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
@@ -53,12 +66,19 @@ class PhotosFragment : Fragment() {
         }
 
         recyclerView.adapter = photoAdapter
+
+        privateButton.setOnClickListener { moveSelectedToPrivate() }
+        deleteButton.setOnClickListener { moveSelectedToDeleted() }
+        cancelButton.setOnClickListener { clearSelection() }
+        toggleMultiSelectButton.setOnClickListener { toggleMultiSelectMode() }
+        updateMultiSelectUi()
     }
 
     override fun onResume() {
         super.onResume()
         if (::photoAdapter.isInitialized) {
             photoAdapter.updatePhotos(getPhotoListItems())
+            updateMultiSelectUi()
         }
     }
 
@@ -112,6 +132,54 @@ class PhotosFragment : Fragment() {
             }
         }
         return photoEntries
+    }
+
+    private fun updateMultiSelectUi() {
+        val selectedCount = photoAdapter.getSelectedPhotos().size
+        val isSelectionMode = photoAdapter.isSelectionModeEnabled()
+        multiSelectActions.visibility = if (isSelectionMode) View.VISIBLE else View.GONE
+        if (isSelectionMode) {
+            selectionCountText.text = getString(R.string.selected_count, selectedCount)
+        }
+        toggleMultiSelectButton.text = if (isSelectionMode) {
+            getString(R.string.done)
+        } else {
+            getString(R.string.multi_select)
+        }
+    }
+
+    private fun moveSelectedToPrivate() {
+        val selectedPhotos = photoAdapter.getSelectedPhotos()
+        if (selectedPhotos.isEmpty()) return
+
+        selectedPhotos.forEach { photoUri ->
+            PrivatePhotosStore.add(photoUri)
+            photoAdapter.removePhoto(photoUri)
+        }
+        clearSelection()
+        Toast.makeText(requireContext(), getString(R.string.set_private_message), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun moveSelectedToDeleted() {
+        val selectedPhotos = photoAdapter.getSelectedPhotos()
+        if (selectedPhotos.isEmpty()) return
+
+        selectedPhotos.forEach { photoUri ->
+            DeletedPhotosStore.add(photoUri)
+            photoAdapter.removePhoto(photoUri)
+        }
+        clearSelection()
+        Toast.makeText(requireContext(), getString(R.string.deleted_message), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun clearSelection() {
+        photoAdapter.setSelectionMode(false)
+        updateMultiSelectUi()
+    }
+
+    private fun toggleMultiSelectMode() {
+        photoAdapter.setSelectionMode(!photoAdapter.isSelectionModeEnabled())
+        updateMultiSelectUi()
     }
 
     private fun showPhotoActions(photoUri: String) {
