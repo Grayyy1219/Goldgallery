@@ -32,10 +32,8 @@ class PhotosFragment : Fragment() {
 
         photoAdapter = PhotoAdapter(
             photos = getVisiblePhotos(),
-            onPhotoClick = { photoUri ->
-                val intent = android.content.Intent(requireContext(), FullImageActivity::class.java)
-                intent.putExtra("IMAGE_PATH", photoUri)
-                startActivity(intent)
+            onPhotoClick = { photoUri, position ->
+                startActivity(FullImageActivity.createIntent(requireContext(), getVisiblePhotos(), position))
             },
             onPhotoLongClick = { photoUri, anchorView ->
                 anchorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)

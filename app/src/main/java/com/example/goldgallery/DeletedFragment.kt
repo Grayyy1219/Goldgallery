@@ -2,7 +2,6 @@ package com.example.goldgallery
 
 import android.app.Activity
 import android.app.RecoverableSecurityException
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -50,10 +49,8 @@ class DeletedFragment : Fragment() {
 
         deletedAdapter = PhotoAdapter(
             photos = DeletedPhotosStore.getAll(),
-            onPhotoClick = { photoUri ->
-                val intent = Intent(requireContext(), FullImageActivity::class.java)
-                intent.putExtra("IMAGE_PATH", photoUri)
-                startActivity(intent)
+            onPhotoClick = { photoUri, position ->
+                startActivity(FullImageActivity.createIntent(requireContext(), DeletedPhotosStore.getAll(), position))
             },
             onPhotoLongClick = { photoUri, _ ->
                 showDeletedPhotoActions(photoUri)

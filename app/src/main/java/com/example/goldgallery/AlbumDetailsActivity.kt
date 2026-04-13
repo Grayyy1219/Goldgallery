@@ -26,10 +26,8 @@ class AlbumDetailsActivity : AppCompatActivity() {
         val filteredPhotos = getPhotosByAlbum(albumName)
         recyclerView.adapter = PhotoAdapter(
             photos = filteredPhotos,
-            onPhotoClick = { photoUri ->
-                val intent = android.content.Intent(this, FullImageActivity::class.java)
-                intent.putExtra("IMAGE_PATH", photoUri)
-                startActivity(intent)
+            onPhotoClick = { photoUri, position ->
+                startActivity(FullImageActivity.createIntent(this, filteredPhotos, position))
             },
             onPhotoLongClick = { photoUri, anchorView ->
                 anchorView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)

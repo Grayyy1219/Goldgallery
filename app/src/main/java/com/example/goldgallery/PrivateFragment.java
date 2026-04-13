@@ -51,10 +51,8 @@ public class PrivateFragment extends Fragment {
 
         privateAdapter = new PhotoAdapter(
                 PrivatePhotosStore.INSTANCE.getAll(),
-                photoUri -> {
-                    android.content.Intent intent = new android.content.Intent(requireContext(), FullImageActivity.class);
-                    intent.putExtra("IMAGE_PATH", photoUri);
-                    startActivity(intent);
+                (photoUri, position) -> {
+                    startActivity(FullImageActivity.Companion.createIntent(requireContext(), PrivatePhotosStore.INSTANCE.getAll(), position));
                     return kotlin.Unit.INSTANCE;
                 },
                 (photoUri, anchor) -> {

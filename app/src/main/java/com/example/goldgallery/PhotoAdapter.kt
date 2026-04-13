@@ -11,7 +11,7 @@ import jp.wasabeef.glide.transformations.BlurTransformation
 
 class PhotoAdapter(
     photos: List<String>,
-    private val onPhotoClick: (String) -> Unit,
+    private val onPhotoClick: (String, Int) -> Unit,
     private val onPhotoLongClick: (String, View) -> Unit
 ) : RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder>() {
 
@@ -39,7 +39,7 @@ class PhotoAdapter(
             holder.itemView.setOnClickListener(null)
             holder.itemView.setOnLongClickListener(null)
         } else {
-            holder.itemView.setOnClickListener { onPhotoClick(photoPath) }
+            holder.itemView.setOnClickListener { onPhotoClick(photoPath, position) }
             holder.itemView.setOnLongClickListener {
                 onPhotoLongClick(photoPath, holder.itemView)
                 true
