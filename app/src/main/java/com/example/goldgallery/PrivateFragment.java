@@ -53,6 +53,7 @@ public class PrivateFragment extends Fragment {
                     return kotlin.Unit.INSTANCE;
                 }
         );
+        privateAdapter.setBlurred(true);
 
         recyclerView.setAdapter(privateAdapter);
     }
@@ -61,6 +62,9 @@ public class PrivateFragment extends Fragment {
     public void onResume() {
         super.onResume();
         if (!isUnlocked) {
+            if (privateAdapter != null) {
+                privateAdapter.setBlurred(true);
+            }
             showAuthFlow();
             return;
         }
@@ -73,6 +77,9 @@ public class PrivateFragment extends Fragment {
     public void onPause() {
         super.onPause();
         isUnlocked = false;
+        if (privateAdapter != null) {
+            privateAdapter.setBlurred(true);
+        }
     }
 
     private void showAuthFlow() {
@@ -135,7 +142,7 @@ public class PrivateFragment extends Fragment {
                 .setTitle(R.string.private_unlock_title)
                 .setMessage(R.string.private_unlock_message)
                 .setView(pinInput)
-                .setCancelable(false)
+                .setCancelable(true)
                 .setPositiveButton(R.string.unlock, (dialog, which) -> {
                     String pin = pinInput.getText().toString().trim();
                     if (PrivateAccessStore.INSTANCE.verifyPin(requireContext(), pin)) {
@@ -199,6 +206,7 @@ public class PrivateFragment extends Fragment {
         isUnlocked = true;
         if (privateAdapter != null) {
             privateAdapter.updatePhotos(PrivatePhotosStore.INSTANCE.getAll());
+            privateAdapter.setBlurred(false);
         }
 
         refreshEmptyState();

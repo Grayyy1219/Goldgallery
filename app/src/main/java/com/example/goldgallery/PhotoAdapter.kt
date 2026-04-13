@@ -6,6 +6,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
+import jp.wasabeef.glide.transformations.BlurTransformation
 
 class PhotoAdapter(
     photos: List<String>,
@@ -14,6 +16,7 @@ class PhotoAdapter(
 ) : RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder>() {
 
     private val photos = photos.toMutableList()
+    private var shouldBlurPhotos = false
 
     class PhotoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imageView: ImageView = view.findViewById(R.id.ivPhoto)
@@ -26,16 +29,21 @@ class PhotoAdapter(
 
     override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
         val photoPath = photos[position]
+        val request = Glide.with(holder.itemView.context).load(photoPath)
+        if (shouldBlurPhotos) {
+            request.apply(RequestOptions.bitmapTransform(BlurTransformation(20, 3)))
+        }
+        request.into(holder.imageView)
 
-        Glide.with(holder.itemView.context)
-            .load(photoPath)
-            .into(holder.imageView)
-
-        holder.itemView.setOnClickListener { onPhotoClick(photoPath) }
-
-        holder.itemView.setOnLongClickListener {
-            onPhotoLongClick(photoPath, holder.itemView)
-            true
+        if (shouldBlurPhotos) {
+            holder.itemView.setOnClickListener(null)
+            holder.itemView.setOnLongClickListener(null)
+        } else {
+            holder.itemView.setOnClickListener { onPhotoClick(photoPath) }
+            holder.itemView.setOnLongClickListener {
+                onPhotoLongClick(photoPath, holder.itemView)
+                true
+            }
         }
     }
 
@@ -53,5 +61,11 @@ class PhotoAdapter(
         photos.removeAt(index)
         notifyItemRemoved(index)
         return true
+    }
+
+    fun setBlurred(blurred: Boolean) {
+        if (shouldBlurPhotos == blurred) return
+        shouldBlurPhotos = blurred
+        notifyDataSetChanged()
     }
 }

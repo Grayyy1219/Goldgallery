@@ -38,6 +38,7 @@ android {
 dependencies {
     // Change the first dot after "github" to a colon
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("jp.wasabeef:glide-transformations:4.3.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
