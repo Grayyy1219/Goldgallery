@@ -3,6 +3,7 @@ package com.example.goldgallery
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -26,6 +27,7 @@ class MonthlyPhotoAdapter(
     private var shouldBlurPhotos = false
     private val selectedPhotos = mutableSetOf<String>()
     private var isSelectionMode = false
+    private val recentlyAddedPhotos = mutableSetOf<String>()
 
     class PhotoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imageView: ImageView = view.findViewById(R.id.ivPhoto)
@@ -83,6 +85,7 @@ class MonthlyPhotoAdapter(
         val isSelected = selectedPhotos.contains(item.uri)
         holder.selectionOverlay.visibility = if (isSelected) View.VISIBLE else View.GONE
         holder.selectionCheck.visibility = if (isSelectionMode) View.VISIBLE else View.GONE
+        applyNewItemAnimationIfNeeded(holder, item.uri)
 
         if (shouldBlurPhotos) {
             holder.itemView.setOnClickListener(null)
@@ -105,7 +108,9 @@ class MonthlyPhotoAdapter(
 
     override fun getItemCount() = items.size
 
-    fun updatePhotos(newItems: List<PhotoListItem>) {
+    fun updatePhotos(newItems: List<PhotoListItem>, newlyAddedUris: Set<String> = emptySet()) {
+        recentlyAddedPhotos.clear()
+        recentlyAddedPhotos.addAll(newlyAddedUris)
         items.clear()
         items.addAll(newItems)
         notifyDataSetChanged()
@@ -175,6 +180,26 @@ class MonthlyPhotoAdapter(
             }
         }
         return count - 1
+    }
+
+    private fun applyNewItemAnimationIfNeeded(holder: PhotoViewHolder, photoUri: String) {
+        if (!recentlyAddedPhotos.remove(photoUri)) {
+            holder.itemView.alpha = 1f
+            holder.itemView.scaleX = 1f
+            holder.itemView.scaleY = 1f
+            return
+        }
+
+        holder.itemView.alpha = 0.35f
+        holder.itemView.scaleX = 0.9f
+        holder.itemView.scaleY = 0.9f
+        holder.itemView.animate()
+            .alpha(1f)
+            .scaleX(1f)
+            .scaleY(1f)
+            .setDuration(280L)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .start()
     }
 }
 

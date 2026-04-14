@@ -70,10 +70,13 @@ class PhotosFragment : Fragment() {
 
         recyclerView.adapter = photoAdapter
         swipeRefreshLayout.setOnRefreshListener {
-            val previousVisibleCount = getVisiblePhotos().size
+            val previousVisiblePhotos = getVisiblePhotos()
+            val previousVisibleCount = previousVisiblePhotos.size
             val refreshedItems = getPhotoListItems()
-            photoAdapter.updatePhotos(refreshedItems)
-            val latestVisibleCount = getVisiblePhotos().size
+            val latestVisiblePhotos = getVisiblePhotos()
+            val latestVisibleCount = latestVisiblePhotos.size
+            val newlyAddedUris = latestVisiblePhotos.toSet() - previousVisiblePhotos.toSet()
+            photoAdapter.updatePhotos(refreshedItems, newlyAddedUris)
 
             if (latestVisibleCount > previousVisibleCount) {
                 val addedCount = latestVisibleCount - previousVisibleCount
@@ -82,6 +85,7 @@ class PhotosFragment : Fragment() {
                     getString(R.string.new_images_found_message, addedCount),
                     Toast.LENGTH_SHORT
                 ).show()
+                recyclerView.smoothScrollToPosition(0)
             } else {
                 Toast.makeText(
                     requireContext(),
