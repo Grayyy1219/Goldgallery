@@ -25,7 +25,7 @@ class AlbumAdapter(private val albums: List<AlbumItem>) : RecyclerView.Adapter<A
     override fun onBindViewHolder(holder: AlbumViewHolder, position: Int) {
         val album = albums[position]
         holder.tvName.text = album.name
-        holder.tvCount.text = "${album.photoCount} Photos"
+        holder.tvCount.text = "${album.photoCount} Items"
 
         Glide.with(holder.itemView.context)
             .load(album.coverPath)

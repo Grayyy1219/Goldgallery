@@ -3,6 +3,7 @@ package com.example.goldgallery
 import android.os.Bundle
 import android.content.ContentUris
 import android.provider.MediaStore
+import android.provider.MediaStore.Files.FileColumns
 import android.view.HapticFeedbackConstants
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -38,28 +39,35 @@ class AlbumDetailsActivity : AppCompatActivity() {
 
     private fun getPhotosByAlbum(targetBucket: String): List<String> {
         val photoUris = mutableListOf<String>()
-        val collectionUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        val collectionUri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
         val projection = arrayOf(
-            MediaStore.Images.Media._ID,
-            MediaStore.Images.Media.BUCKET_DISPLAY_NAME
+            FileColumns._ID,
+            FileColumns.MEDIA_TYPE,
+            "bucket_display_name"
         )
-        val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
+        val selection = "(${FileColumns.MEDIA_TYPE} = ? OR ${FileColumns.MEDIA_TYPE} = ?) AND bucket_display_name = ?"
+        val selectionArgs = arrayOf(
+            FileColumns.MEDIA_TYPE_IMAGE.toString(),
+            FileColumns.MEDIA_TYPE_VIDEO.toString(),
+            targetBucket
+        )
+        val sortOrder = "${FileColumns.DATE_TAKEN} DESC"
 
-       val cursor = contentResolver.query(collectionUri, projection, null, null, sortOrder)
+        val cursor = contentResolver.query(collectionUri, projection, selection, selectionArgs, sortOrder)
 
 
         cursor?.use {
-           val idColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-            val bucketColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+            val idColumn = it.getColumnIndexOrThrow(FileColumns._ID)
+            val mediaTypeColumn = it.getColumnIndexOrThrow(FileColumns.MEDIA_TYPE)
             while (it.moveToNext()) {
-              val imageId = it.getLong(idColumn)
-                val folderName = it.getString(bucketColumn)
-
-                // Only add the photo if it's in the clicked folder
-                if (folderName == targetBucket) {
-                    val imageUri = ContentUris.withAppendedId(collectionUri, imageId)
-                    photoUris.add(imageUri.toString())
+                val mediaId = it.getLong(idColumn)
+                val mediaType = it.getInt(mediaTypeColumn)
+                val mediaCollectionUri = when (mediaType) {
+                    FileColumns.MEDIA_TYPE_VIDEO -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    else -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
                 }
+                val mediaUri = ContentUris.withAppendedId(mediaCollectionUri, mediaId)
+                photoUris.add(mediaUri.toString())
             }
         }
         return photoUris

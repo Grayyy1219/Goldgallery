@@ -27,7 +27,13 @@ class MainActivity : AppCompatActivity() {
 
         // 2. Permissions
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            requestPermissions(arrayOf(android.Manifest.permission.READ_MEDIA_IMAGES), 101)
+            requestPermissions(
+                arrayOf(
+                    android.Manifest.permission.READ_MEDIA_IMAGES,
+                    android.Manifest.permission.READ_MEDIA_VIDEO
+                ),
+                101
+            )
         } else {
             requestPermissions(arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE), 101)
         }

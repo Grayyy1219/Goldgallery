@@ -3,6 +3,7 @@ package com.example.goldgallery
 import android.content.ContentUris
 import android.os.Bundle
 import android.provider.MediaStore
+import android.provider.MediaStore.Files.FileColumns
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
@@ -109,24 +110,39 @@ class PhotosFragment : Fragment() {
 
     private fun getLocalPhotos(): List<PhotoEntry> {
         val photoEntries = mutableListOf<PhotoEntry>()
-        val collectionUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        val projection = arrayOf(MediaStore.Images.Media._ID, MediaStore.Images.Media.DATE_TAKEN)
-        val sortOrder = "${MediaStore.Images.Media.DATE_TAKEN} DESC"
+        val collectionUri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        val projection = arrayOf(
+            FileColumns._ID,
+            FileColumns.MEDIA_TYPE,
+            FileColumns.DATE_TAKEN
+        )
+        val selection = "${FileColumns.MEDIA_TYPE} = ? OR ${FileColumns.MEDIA_TYPE} = ?"
+        val selectionArgs = arrayOf(
+            FileColumns.MEDIA_TYPE_IMAGE.toString(),
+            FileColumns.MEDIA_TYPE_VIDEO.toString()
+        )
+        val sortOrder = "${FileColumns.DATE_TAKEN} DESC"
 
         val cursor = requireContext().contentResolver.query(
             collectionUri,
             projection,
-            null,
-            null,
+            selection,
+            selectionArgs,
             sortOrder
         )
 
         cursor?.use {
-            val idColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-            val dateTakenColumn = it.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN)
+            val idColumn = it.getColumnIndexOrThrow(FileColumns._ID)
+            val mediaTypeColumn = it.getColumnIndexOrThrow(FileColumns.MEDIA_TYPE)
+            val dateTakenColumn = it.getColumnIndexOrThrow(FileColumns.DATE_TAKEN)
             while (it.moveToNext()) {
-                val imageId = it.getLong(idColumn)
-                val imageUri = ContentUris.withAppendedId(collectionUri, imageId)
+                val mediaId = it.getLong(idColumn)
+                val mediaType = it.getInt(mediaTypeColumn)
+                val mediaCollectionUri = when (mediaType) {
+                    FileColumns.MEDIA_TYPE_VIDEO -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    else -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                }
+                val imageUri = ContentUris.withAppendedId(mediaCollectionUri, mediaId)
                 val dateTaken = it.getLong(dateTakenColumn)
                 photoEntries.add(PhotoEntry(uri = imageUri.toString(), dateTaken = dateTaken))
             }
