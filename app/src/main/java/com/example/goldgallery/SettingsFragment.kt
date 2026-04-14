@@ -1,7 +1,11 @@
 package com.example.goldgallery
 
 import android.os.Bundle
+import android.os.StatFs
+import android.text.format.Formatter
 import android.view.View
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 
 class SettingsFragment : Fragment(R.layout.fragment_settings) {
@@ -11,5 +15,26 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
         // Dark mode logic has been removed to restore app stability
         // and ensure click listeners in other fragments remain active.
+
+        bindStorageIndicator(view)
+    }
+
+    private fun bindStorageIndicator(view: View) {
+        val summaryView = view.findViewById<TextView>(R.id.textStorageSummary)
+        val progressView = view.findViewById<ProgressBar>(R.id.progressStorage)
+
+        val statFs = StatFs(requireContext().filesDir.absolutePath)
+        val totalBytes = statFs.totalBytes.coerceAtLeast(1L)
+        val availableBytes = statFs.availableBytes.coerceAtLeast(0L)
+        val usedBytes = (totalBytes - availableBytes).coerceAtLeast(0L)
+        val usedPercent = ((usedBytes * 100L) / totalBytes).toInt().coerceIn(0, 100)
+
+        summaryView.text = getString(
+            R.string.storage_limit_summary,
+            Formatter.formatFileSize(requireContext(), usedBytes),
+            Formatter.formatFileSize(requireContext(), totalBytes),
+            usedPercent
+        )
+        progressView.progress = usedPercent
     }
 }

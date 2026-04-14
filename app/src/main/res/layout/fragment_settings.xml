@@ -25,4 +25,29 @@
         android:layout_marginTop="16dp"
         android:background="#DDDDDD" />
 
+    <TextView
+        android:id="@+id/textStorageTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/storage_limit_title"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textStorageSummary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/storage_limit_loading" />
+
+    <ProgressBar
+        android:id="@+id/progressStorage"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:max="100"
+        android:progress="0" />
+
 </LinearLayout>

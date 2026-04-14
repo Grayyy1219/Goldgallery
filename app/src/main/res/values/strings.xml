@@ -51,4 +51,7 @@
     <string name="selected_count">%1$d selected</string>
     <string name="multi_select">Multi-select</string>
     <string name="done">Done</string>
+    <string name="storage_limit_title">Storage</string>
+    <string name="storage_limit_loading">Calculating storage usage…</string>
+    <string name="storage_limit_summary">%1$s used of %2$s (%3$d%%)</string>
 </resources>
