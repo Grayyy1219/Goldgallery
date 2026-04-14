@@ -29,6 +29,7 @@ class MonthlyPhotoAdapter(
 
     class PhotoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imageView: ImageView = view.findViewById(R.id.ivPhoto)
+        val videoIndicator: View = view.findViewById(R.id.tvVideoIndicator)
         val selectionOverlay: View = view.findViewById(R.id.viewSelectionOverlay)
         val selectionCheck: View = view.findViewById(R.id.tvSelectionCheck)
     }
@@ -78,6 +79,7 @@ class MonthlyPhotoAdapter(
             request.apply(RequestOptions.bitmapTransform(BlurTransformation(20, 3)))
         }
         request.into(holder.imageView)
+        holder.videoIndicator.visibility = if (item.isVideo) View.VISIBLE else View.GONE
         val isSelected = selectedPhotos.contains(item.uri)
         holder.selectionOverlay.visibility = if (isSelected) View.VISIBLE else View.GONE
         holder.selectionCheck.visibility = if (isSelectionMode) View.VISIBLE else View.GONE
@@ -178,5 +180,5 @@ class MonthlyPhotoAdapter(
 
 sealed class PhotoListItem {
     data class MonthHeader(val title: String) : PhotoListItem()
-    data class Photo(val uri: String, val dateTaken: Long) : PhotoListItem()
+    data class Photo(val uri: String, val dateTaken: Long, val isVideo: Boolean) : PhotoListItem()
 }

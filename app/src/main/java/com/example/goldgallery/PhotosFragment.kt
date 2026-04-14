@@ -94,7 +94,7 @@ class PhotosFragment : Fragment() {
         grouped.forEach { (month, entries) ->
             items.add(PhotoListItem.MonthHeader(month))
             entries.forEach { entry ->
-                items.add(PhotoListItem.Photo(entry.uri, entry.dateTaken))
+                items.add(PhotoListItem.Photo(entry.uri, entry.dateTaken, entry.isVideo))
             }
         }
         return items
@@ -144,7 +144,13 @@ class PhotosFragment : Fragment() {
                 }
                 val imageUri = ContentUris.withAppendedId(mediaCollectionUri, mediaId)
                 val dateTaken = it.getLong(dateTakenColumn)
-                photoEntries.add(PhotoEntry(uri = imageUri.toString(), dateTaken = dateTaken))
+                photoEntries.add(
+                    PhotoEntry(
+                        uri = imageUri.toString(),
+                        dateTaken = dateTaken,
+                        isVideo = mediaType == FileColumns.MEDIA_TYPE_VIDEO
+                    )
+                )
             }
         }
         return photoEntries
@@ -233,6 +239,7 @@ class PhotosFragment : Fragment() {
 
     private data class PhotoEntry(
         val uri: String,
-        val dateTaken: Long
+        val dateTaken: Long,
+        val isVideo: Boolean
     )
 }
