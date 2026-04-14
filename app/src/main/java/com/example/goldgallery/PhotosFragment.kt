@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -39,6 +40,7 @@ class PhotosFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val recyclerView = view.findViewById<RecyclerView>(R.id.rvPhotos)
+        val swipeRefreshLayout = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefreshPhotos)
         multiSelectActions = view.findViewById(R.id.layoutMultiSelectActions)
         selectionCountText = view.findViewById(R.id.tvSelectionCount)
         toggleMultiSelectButton = view.findViewById(R.id.btnToggleMultiSelect)
@@ -67,6 +69,28 @@ class PhotosFragment : Fragment() {
         }
 
         recyclerView.adapter = photoAdapter
+        swipeRefreshLayout.setOnRefreshListener {
+            val previousVisibleCount = getVisiblePhotos().size
+            val refreshedItems = getPhotoListItems()
+            photoAdapter.updatePhotos(refreshedItems)
+            val latestVisibleCount = getVisiblePhotos().size
+
+            if (latestVisibleCount > previousVisibleCount) {
+                val addedCount = latestVisibleCount - previousVisibleCount
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.new_images_found_message, addedCount),
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.no_new_images_message),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            swipeRefreshLayout.isRefreshing = false
+        }
 
         privateButton.setOnClickListener { moveSelectedToPrivate() }
         deleteButton.setOnClickListener { moveSelectedToDeleted() }

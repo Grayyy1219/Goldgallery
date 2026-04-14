@@ -13,8 +13,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Dark mode logic has been removed to restore app stability
-        // and ensure click listeners in other fragments remain active.
+        // Theme now follows the device setting (DayNight default).
 
         bindStorageIndicator(view)
     }

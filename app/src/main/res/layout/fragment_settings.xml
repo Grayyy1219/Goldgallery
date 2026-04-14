@@ -12,12 +12,12 @@
         android:textSize="18sp"
         android:textStyle="bold" />
 
-    <com.google.android.material.materialswitch.MaterialSwitch
-        android:id="@+id/switchDarkMode"
+    <TextView
+        android:id="@+id/textThemeSummary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Dark Mode" />
+        android:text="@string/theme_follow_device" />
 
     <View
         android:layout_width="match_parent"

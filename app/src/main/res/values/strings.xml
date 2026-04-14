@@ -54,4 +54,7 @@
     <string name="storage_limit_title">Storage</string>
     <string name="storage_limit_loading">Calculating storage usage…</string>
     <string name="storage_limit_summary">%1$s used of %2$s (%3$d%%)</string>
+    <string name="new_images_found_message">%1$d new image(s) found</string>
+    <string name="no_new_images_message">No new images found</string>
+    <string name="theme_follow_device">Theme follows your device setting.</string>
 </resources>
